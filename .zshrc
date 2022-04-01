@@ -9,7 +9,7 @@ export ZSH="/Users/ericuyemura/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 # ZSH_THEME="af-magic"
-ZSH_THEME="robbyrussell"
+ZSH_THEME="philips"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -92,7 +92,7 @@ source $ZSH/oh-my-zsh.sh
 # if [[ -n $SSH_CONNECTION ]]; then
 #   export EDITOR='vim'
 # else
-#   export EDITOR='mvim'
+#   export EDITOR='vim'
 # fi
 
 # Compilation flags
@@ -117,24 +117,42 @@ export PATH="/usr/local/opt/mysql-client/bin:$PATH"
 # Rails database
 export RAILS_MYSQL_USER=root
 export RAILS_MYSQL_PASSWORD=password
+export ROOT_MYSQL_USER=root
+export ROOT_MYSQL_PASSWORD=password
 
+# FZF preferences
+# export FZF_DEFAULT_COMMAND="find -L"
 
+. ~/.zshenv
 . ~/.mysql_docker_aliases
+. ~/.postgres_docker_aliases
 . ~/.fms_client_aliases
 
-alias refreshconfig='. ~/.zshrc'
+alias refresh_config='. ~/.zshrc'
 alias c='clear'
 alias v='nvim'
 . $(brew --prefix asdf)/asdf.sh
-alias grecent="git for-each-ref --sort='''authordate:iso8601''' --format=''' %(authordate:relative)%09%(refname:short)''' refs/heads"
-alias gre="grecent"
+alias gre="git for-each-ref --sort='''authordate:iso8601''' --format=''' %(authordate:relative)%09%(refname:short)''' refs/heads"
 alias be='bundle exec'
 alias tn='tmux new'
-alias fixenter='stty icrnl'
+alias fix_enter='stty icrnl'
 alias order66='bundle exec rubocop-git --display-cop-names origin/master...HEAD'
 alias build_db='be rails db:setup && be rails db:test:prepare'
 alias refresh_touch_bar='killall ControlStrip'
 alias aspen_start='cd ~/annkissam/fms_bit_client && tmux new -s aspen'
+alias ma_start='cd ~/annkissam/fms_bit_ma && tmux new -s ma'
+alias gd='git diff'
+alias gca='git commit --amend --no-edit'
+alias change_it="git commit -am 'Update CHANGELOG'"
+
+function find_branch() {
+  if [ "$1" != "" ]
+  then
+    gre | grep "$1"
+  else
+    echo 'give search term for branch matching'
+  fi
+}
 
 function deploy_staging() {
   if [ "$1" != "" ]
@@ -145,6 +163,7 @@ function deploy_staging() {
     echo 'make sure to give a client to deploy to'
   fi
 }
+
 function deploy_production() {
   if [ "$1" != "" ]
   then
@@ -152,6 +171,15 @@ function deploy_production() {
     FMS_CLIENT="$1" bundle exec cap production deploy
   else
     echo 'make sure to give a client to deploy to'
+  fi
+}
+
+function test_this() {
+  if [[ $1 -gt 1 && "$2" != "" ]]
+  then 
+    for i in {1..$1}; do be rspec "$2"; done
+  else
+    echo 'Make sure first argument is a num greater than 1 and second is a string'
   fi
 }
 
@@ -187,3 +215,69 @@ function vinstall() {
     echo 'Make sure to enter in a git repo between ""'
   fi
 }
+
+function pipe_results() {
+  if [ "$1" != "" ]
+  then
+    touch ~/annkissam/todos/"$1"_results.md
+    ag "$1" -Q -l > ~/annkissam/todos/"$1"_results.md
+  else
+    echo 'Make sure to give a searchable result'
+  fi
+}
+
+function pipe_results_cpma() {
+  if [ "$1" != "" ]
+  then
+    touch ~/annkissam/todos/cpma/"$1"_results.md
+    ag "$1" -Q -l > ~/annkissam/todos/cpma/"$1"_results.md
+  else
+    echo 'Make sure to give a searchable result'
+  fi
+}
+
+function file_present() {
+  if [[ ! -a /Users/ericuyemura/annkissam/fms_bit_client/app/processors/shared/timesheet_processor.rb ]]
+  then
+    exit 1
+  else
+    exit 0
+  fi
+}
+function test_file_present() {
+  if [[ ! -a /Users/ericuyemura/annkissam/fms_bit_client/app/processors/shared/timesheet_processor.rb ]]
+  then
+    echo "The file is not present"
+  else
+    echo "The file is present"
+  fi
+}
+
+function ask_for_input() {
+  read [ REPLY[?This is the question I want to ask?] ]
+  echo REPLY
+}
+export PATH="/usr/local/opt/imagemagick@6/bin:$PATH"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/ericuyemura/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/ericuyemura/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/ericuyemura/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/ericuyemura/google-cloud-sdk/completion.zsh.inc'; fi
+
+
+function kubessh() {
+  if [ $# -eq 0 ]
+  then
+    kubectl get namespaces
+  else
+    if [ $# -eq 1 ]
+    then
+      kubectl get pods --namespace=$1 | egrep -o "[^ ]*app-deployment"
+    else
+      kube=$(kubectl get pods --namespace=$1 | ruby -ne "puts $& if /$2[\w-]+app-deployment[\w-]+/")
+      kubectl exec -it $kube --namespace=$1 -- /bin/bash
+    fi
+  fi
+}
+. /usr/local/opt/asdf/libexec/asdf.sh

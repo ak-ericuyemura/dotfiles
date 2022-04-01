@@ -4,7 +4,8 @@ filetype plugin indent on
 syntax on 
 
 set wildmenu 
-colo dracula     
+" colo OceanicNext     
+colo dracula
 " Turn off swaps
 set noswapfile
  
@@ -12,7 +13,7 @@ set noswapfile
 set number 
 
 " Line guide 
-set colorcolumn=80
+set colorcolumn=100
 
 " Set fold method
 set foldmethod=indent
@@ -55,6 +56,9 @@ nmap K 5k
 xmap J 5j
 xmap K 5k
 
+" This allow you to copy rest of line.
+nmap Y y$
+
 "  do something for C, to change the rest of the line
 
 " Copy relative file path of current buffer to clipboard
@@ -69,11 +73,20 @@ noremap <silent> cP :let @+=expand("%:p")<CR>
 "  Print out unsaved differences to the file
 :command! Diff w !diff % -
 
+" Stop highlighting of current search term
+:command! Stop noh
+
+:command! Nohi hi link markdownError Normal
+
 "  Reload the current file
 " :command! Reload w e!
 
 "  Find and delete the double quotes 
 let @z='0f"r''f"r''j'
+let @c='I- [ ] '
+
+"  Disable linelength
+let @d='A # rubocop:disable Metrics/LineLength'
 
 " Set plugins
 " set the thing for fzf
@@ -102,3 +115,10 @@ noremap <silent> <C-n> :e.<CR>
 " let g:ctrlp_max_files=0 
 " let g:ctrlp_max_depth=40
 
+" configuration for vim-markdown
+let g:markdown_fenced_languages = ['html', 'ruby', 'bash=sh', 'javascript', 'sql']
+set rtp+=/usr/local/opt/fzf
+
+" Default fzf layout
+" - Popup window (anchored to the bottom of the current window)
+let g:fzf_layout = { 'window': { 'width': 1.0, 'height': 0.8, 'relative': v:true, 'yoffset': 1.0 } }
